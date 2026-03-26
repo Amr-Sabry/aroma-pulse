@@ -1,52 +1,45 @@
 import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
 import { auth } from "@/lib/auth";
 
-const roleRoutes = {
-  admin: "/admin",
-  producer: "/producer",
-  head: "/head",
-  creative: "/designer",
-} as const;
+export async function middleware(request: Request) {
+  const { pathname } = new URL(request.url);
 
-export default async function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
-
-  if (pathname === "/login") {
-    const session = await auth();
-    if (session?.user) {
-      const role = session.user.role || "creative";
-      return NextResponse.redirect(new URL(roleRoutes[role], request.url));
-    }
+  // Allow public paths
+  if (
+    pathname.startsWith("/login") ||
+    pathname.startsWith("/api/auth") ||
+    pathname.startsWith("/_next") ||
+    pathname.startsWith("/favicon") ||
+    pathname.includes(".")
+  ) {
     return NextResponse.next();
   }
 
-  if (pathname === "/") {
-    return NextResponse.redirect(new URL("/login", request.url));
-  }
-
+  // Check auth on protected routes
   const session = await auth();
-  if (!session?.user) {
+
+  if (!session?.user && pathname.startsWith("/admin")) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
-  const role = session.user.role || "creative";
-  const routePrefix = pathname.split("/")[1];
-
-  const rolePrefixes: Record<string, string> = {
-    admin: "admin",
-    producer: "producer",
-    head: "head",
-    creative: "designer",
-  };
-
-  if (routePrefix && routePrefix !== rolePrefixes[role]) {
-    return NextResponse.redirect(new URL(roleRoutes[role], request.url));
+  // Role-based redirects
+  if (session?.user) {
+    const role = session.user.role;
+    if (role === "creative" && pathname.startsWith("/admin")) {
+      return NextResponse.redirect(new URL("/designer", request.url));
+    }
+    if (role === "producer" && pathname.startsWith("/admin") && !pathname.startsWith("/admin/producer")) {
+      return NextResponse.redirect(new URL("/producer", request.url));
+    }
   }
 
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico|.*\\.svg).*)"],
+  matcher: ["/((?!api/auth|_next/static|_next/image|favicon.ico).*)"],
 };

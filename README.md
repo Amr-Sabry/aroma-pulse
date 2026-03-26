@@ -2,6 +2,8 @@
 
 **Creative Team Management System** — Built for Aroma Studios
 
+<!-- env vars added --> 
+
 ## Tech Stack
 - **Frontend:** Next.js 15 (App Router) + TypeScript
 - **Styling:** Tailwind CSS + Custom Design System

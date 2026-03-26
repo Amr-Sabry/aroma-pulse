@@ -1,9 +1,7 @@
 import { NextResponse } from "next/server";
 
-export const runtime = "nodejs";
+export const runtime = "edge";
 export const dynamic = "force-dynamic";
-
-import { auth } from "@/lib/auth";
 
 export async function middleware(request: Request) {
   const { pathname } = new URL(request.url);
@@ -19,22 +17,11 @@ export async function middleware(request: Request) {
     return NextResponse.next();
   }
 
-  // Check auth on protected routes
-  const session = await auth();
+  // Role-based redirects (basic, no DB call)
+  const cookieHeader = request.headers.get("cookie") || "";
 
-  if (!session?.user && pathname.startsWith("/admin")) {
+  if (!cookieHeader.includes("next-auth.session-token") && pathname.startsWith("/admin")) {
     return NextResponse.redirect(new URL("/login", request.url));
-  }
-
-  // Role-based redirects
-  if (session?.user) {
-    const role = session.user.role;
-    if (role === "creative" && pathname.startsWith("/admin")) {
-      return NextResponse.redirect(new URL("/designer", request.url));
-    }
-    if (role === "producer" && pathname.startsWith("/admin") && !pathname.startsWith("/admin/producer")) {
-      return NextResponse.redirect(new URL("/producer", request.url));
-    }
   }
 
   return NextResponse.next();

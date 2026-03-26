@@ -11,24 +11,21 @@ import {
   GanttChartSquare,
   Settings,
   LogOut,
-  Bell,
-  ChevronRight,
   Zap,
+  Shield,
 } from "lucide-react";
 import Link from "next/link";
 
 const navItems = [
-  { href: "/admin", icon: LayoutDashboard, label: "Live Pulse", roles: ["admin"] },
-  { href: "/admin/team", icon: Users, label: "Team Hub", roles: ["admin"] },
-  { href: "/admin/projects", icon: FolderKanban, label: "Projects", roles: ["admin", "producer"] },
-  { href: "/admin/timeline", icon: GanttChartSquare, label: "Timeline", roles: ["admin"] },
-  { href: "/admin/settings", icon: Settings, label: "Settings", roles: ["admin"] },
+  { href: "/admin", icon: LayoutDashboard, label: "Live Pulse" },
+  { href: "/admin/team", icon: Users, label: "Team Hub" },
+  { href: "/admin/projects", icon: FolderKanban, label: "Projects" },
+  { href: "/admin/users", icon: Shield, label: "Users" },
 ];
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { data: session, status } = useSession();
   const router = useRouter();
-  const [mobileMenu, setMobileMenu] = useState(false);
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -77,37 +74,32 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
           {/* Desktop Nav */}
           <nav className="hidden md:flex items-center bg-[#161922] border border-[#2a2f3e] rounded-xl p-1 gap-1">
-            {navItems
-              .filter((item) => item.roles.includes(user.role))
-              .map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-white hover:bg-[#1e2330] transition-all"
-                >
-                  <item.icon size={14} />
-                  {item.label}
-                </Link>
-              ))}
+            {navItems.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-white hover:bg-[#1e2330] transition-all"
+              >
+                <item.icon size={14} />
+                {item.label}
+              </Link>
+            ))}
           </nav>
 
           {/* Right Side */}
           <div className="flex items-center gap-3">
-            {/* Role Badge */}
             <span className={`hidden sm:inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-lg border capitalize ${roleColors[user.role] || roleColors.creative}`}>
               <Activity size={10} />
               {user.role}
             </span>
 
-            {/* User */}
             <div className="flex items-center gap-2.5">
               <div className="w-8 h-8 bg-gradient-to-br from-purple-700 to-purple-900 rounded-full flex items-center justify-center text-xs font-bold text-white">
-                {user.name?.slice(0, 2).toUpperCase() || "US"}
+                {(user.name || "US").slice(0, 2).toUpperCase()}
               </div>
               <span className="hidden sm:block text-sm font-medium text-slate-300 font-ui">{user.name}</span>
             </div>
 
-            {/* Logout */}
             <button
               onClick={() => signOut({ callbackUrl: "/login" })}
               className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-red-400 transition-colors px-2 py-1.5 rounded-lg hover:bg-red-900/10"
@@ -121,18 +113,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
       {/* Mobile Nav */}
       <div className="md:hidden border-b border-[#2a2f3e] bg-[#0f1117]/95 px-4 py-2 overflow-x-auto flex gap-2">
-        {navItems
-          .filter((item) => item.roles.includes(user.role))
-          .map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 bg-[#161922] border border-[#2a2f3e] whitespace-nowrap hover:text-white hover:bg-[#1e2330] transition-all"
-            >
-              <item.icon size={12} />
-              {item.label}
-            </Link>
-          ))}
+        {navItems.map((item) => (
+          <Link
+            key={item.href}
+            href={item.href}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 bg-[#161922] border border-[#2a2f3e] whitespace-nowrap hover:text-white hover:bg-[#1e2330] transition-all"
+          >
+            <item.icon size={12} />
+            {item.label}
+          </Link>
+        ))}
       </div>
 
       {/* Content */}

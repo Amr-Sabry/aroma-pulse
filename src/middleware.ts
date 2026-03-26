@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 
-export const runtime = "edge";
-export const dynamic = "force-dynamic";
+export const config = {
+  matcher: ["/((?!api/auth|_next/static|_next/image|favicon.ico).*)"],
+};
 
-export async function middleware(request: Request) {
-  const { pathname } = new URL(request.url);
+export function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
 
   // Allow public paths
   if (
@@ -17,16 +19,6 @@ export async function middleware(request: Request) {
     return NextResponse.next();
   }
 
-  // Role-based redirects (basic, no DB call)
-  const cookieHeader = request.headers.get("cookie") || "";
-
-  if (!cookieHeader.includes("next-auth.session-token") && pathname.startsWith("/admin")) {
-    return NextResponse.redirect(new URL("/login", request.url));
-  }
-
+  // Let NextAuth handle session - just protect routes
   return NextResponse.next();
 }
-
-export const config = {
-  matcher: ["/((?!api/auth|_next/static|_next/image|favicon.ico).*)"],
-};

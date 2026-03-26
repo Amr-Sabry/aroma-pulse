@@ -3,11 +3,11 @@
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { Activity, Lock, Mail, ArrowRight, AlertCircle } from "lucide-react";
+import { Activity, Lock, User, ArrowRight, AlertCircle } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -19,18 +19,17 @@ export default function LoginPage() {
 
     try {
       const result = await signIn("credentials", {
-        email,
+        username,
         password,
         redirect: false,
       });
 
       if (result?.error) {
-        setError("Invalid email or password. Please try again.");
+        setError("Invalid username or password. Please try again.");
         setLoading(false);
         return;
       }
 
-      // Redirect based on role — will be handled by middleware or page
       router.push("/admin");
       router.refresh();
     } catch {
@@ -47,7 +46,7 @@ export default function LoginPage() {
 
       {/* Login Card */}
       <div className="w-full max-w-md animate-slide-up">
-        {/* Logo / Brand */}
+        {/* Brand */}
         <div className="text-center mb-10">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-600 to-purple-800 shadow-[0_0_40px_rgba(124,58,237,0.4)] mb-6">
             <Activity className="text-white" size={32} />
@@ -60,7 +59,7 @@ export default function LoginPage() {
           </p>
         </div>
 
-        {/* Form Card */}
+        {/* Form */}
         <div className="bg-[#161922] border border-[#2a2f3e] rounded-3xl p-8 shadow-[0_8px_40px_rgba(0,0,0,0.6)]">
           <h2 className="text-xl font-bold text-white mb-6 text-center">
             Sign in to your workspace
@@ -74,18 +73,19 @@ export default function LoginPage() {
           )}
 
           <form onSubmit={handleLogin} className="space-y-5">
-            {/* Email */}
+            {/* Username */}
             <div className="space-y-2">
               <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-2">
-                <Mail size={12} />
-                Email Address
+                <User size={12} />
+                Username
               </label>
               <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@aromastudios.com"
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="your_username"
                 required
+                autoComplete="username"
                 className="w-full bg-[#0f1117] border border-[#2a2f3e] rounded-xl px-4 py-3.5 text-white placeholder-slate-600 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all outline-none font-ui"
               />
             </div>
@@ -102,6 +102,7 @@ export default function LoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
                 required
+                autoComplete="current-password"
                 className="w-full bg-[#0f1117] border border-[#2a2f3e] rounded-xl px-4 py-3.5 text-white placeholder-slate-600 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all outline-none font-ui"
               />
             </div>
@@ -124,7 +125,6 @@ export default function LoginPage() {
           </form>
         </div>
 
-        {/* Footer */}
         <p className="text-center text-slate-600 text-xs mt-6 font-ui">
           © 2026 Aroma Studios. All rights reserved.
         </p>

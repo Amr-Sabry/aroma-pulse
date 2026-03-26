@@ -1,21 +1,24 @@
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
-import { signInWithEmailAndPassword } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
-import { auth, db } from "@/lib/firebase";
+import { compare } from "bcryptjs";
+import { collection, doc, getDoc } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 import type { Role } from "@/types";
 
 declare module "next-auth" {
   interface Session {
     user: {
       id: string;
+      username: string;
       name: string;
-      email: string;
       role: Role;
+      avatar?: string;
     };
   }
   interface User {
     id: string;
+    username: string;
+    name: string;
     role: Role;
   }
 }
@@ -23,6 +26,7 @@ declare module "next-auth" {
 declare module "next-auth/jwt" {
   interface JWT {
     id: string;
+    username: string;
     role: Role;
   }
 }
@@ -32,34 +36,47 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     Credentials({
       name: "Aroma Studios",
       credentials: {
-        email: { label: "Email", type: "email" },
+        username: { label: "Username", type: "text" },
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) return null;
+        if (!credentials?.username || !credentials?.password) return null;
+
+        const username = credentials.username as string;
+        const password = credentials.password as string;
 
         try {
-          const userCredential = await signInWithEmailAndPassword(
-            auth,
-            credentials.email as string,
-            credentials.password as string
+          // Find user by username in Firestore
+          const usersRef = collection(db, "aroma-pulse/production/users");
+          const snapshot = await import("firebase/firestore").then(m =>
+            m.getDocs(usersRef)
           );
 
-          if (!userCredential.user) return null;
+          let foundUser: {
+            id: string;
+            username: string;
+            name: string;
+            password: string;
+            role: Role;
+          } | null = null;
 
-          // Get user role from Firestore
-          const userDocRef = doc(db, "aroma-pulse/production/users", userCredential.user.uid);
-          const userDoc = await getDoc(userDocRef);
+          snapshot.forEach((docSnap) => {
+            const data = docSnap.data();
+            if (data.username?.toLowerCase() === username.toLowerCase()) {
+              foundUser = { id: docSnap.id, ...data } as any;
+            }
+          });
 
-          if (!userDoc.exists()) return null;
+          if (!foundUser) return null;
 
-          const userData = userDoc.data();
+          const isValid = await compare(password, foundUser.password);
+          if (!isValid) return null;
 
           return {
-            id: userCredential.user.uid,
-            email: userCredential.user.email || "",
-            name: userData?.name || "User",
-            role: userData?.role || "creative",
+            id: foundUser.id,
+            username: foundUser.username,
+            name: foundUser.name,
+            role: foundUser.role || "creative",
           };
         } catch (error) {
           console.error("Auth error:", error);
@@ -72,6 +89,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
+        token.username = user.username;
         token.role = user.role;
       }
       return token;
@@ -79,6 +97,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.id;
+        session.user.username = token.username;
         session.user.role = token.role;
       }
       return session;
@@ -91,4 +110,5 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   session: {
     strategy: "jwt",
   },
+  secret: process.env.NEXTAUTH_SECRET || "aroma-pulse-secret-key-2026",
 });

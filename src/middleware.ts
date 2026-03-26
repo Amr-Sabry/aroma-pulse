@@ -12,34 +12,36 @@ const roleRoutes = {
 export default async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Public routes
-  if (pathname === "/login" || pathname === "/") {
+  if (pathname === "/login") {
     const session = await auth();
-    if (session?.user && pathname === "/") {
+    if (session?.user) {
       const role = session.user.role || "creative";
       return NextResponse.redirect(new URL(roleRoutes[role], request.url));
     }
     return NextResponse.next();
   }
 
-  // Redirect root to login
   if (pathname === "/") {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
-  // Auth check for protected routes
   const session = await auth();
   if (!session?.user) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
-  // Role-based route protection
   const role = session.user.role || "creative";
-  const routeRole = pathname.split("/")[1] as string;
+  const routePrefix = pathname.split("/")[1];
 
-  if (routeRole && routeRole !== role) {
-    // Trying to access another role's route
-    return NextResponse.redirect(new URL(roleRoutes[role as keyof typeof roleRoutes], request.url));
+  const rolePrefixes: Record<string, string> = {
+    admin: "admin",
+    producer: "producer",
+    head: "head",
+    creative: "designer",
+  };
+
+  if (routePrefix && routePrefix !== rolePrefixes[role]) {
+    return NextResponse.redirect(new URL(roleRoutes[role], request.url));
   }
 
   return NextResponse.next();

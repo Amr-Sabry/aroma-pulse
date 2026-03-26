@@ -2,23 +2,21 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 export const config = {
-  matcher: ["/((?!api/auth|_next/static|_next/image|favicon.ico).*)"],
+  // Match all paths except static files and API routes
+  matcher: [
+    "/((?!api/auth|_next/static|_next/image|favicon.ico).*)",
+  ],
 };
 
 export function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
+  // Simple redirect for unauthenticated users
+  // NextAuth will handle the actual session validation
+  const url = request.nextUrl.clone();
 
-  // Allow public paths
-  if (
-    pathname.startsWith("/login") ||
-    pathname.startsWith("/api/auth") ||
-    pathname.startsWith("/_next") ||
-    pathname.startsWith("/favicon") ||
-    pathname.includes(".")
-  ) {
+  if (!url.pathname.startsWith("/login")) {
+    // Let the page handle auth check, just continue
     return NextResponse.next();
   }
 
-  // Let NextAuth handle session - just protect routes
   return NextResponse.next();
 }

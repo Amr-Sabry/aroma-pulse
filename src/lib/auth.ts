@@ -1,7 +1,5 @@
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
-import { compare } from "bcryptjs";
-import { collection, doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import type { Role } from "@/types";
 
@@ -23,7 +21,7 @@ declare module "next-auth" {
   }
 }
 
-declare module "next-auth/jwt" {
+declare module "@auth/core/jwt" {
   interface JWT {
     id: string;
     username: string;
@@ -46,11 +44,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         const password = credentials.password as string;
 
         try {
+          // Dynamic import to avoid Edge runtime issues with bcryptjs
+          const { compare } = await import("bcryptjs");
+          const { collection, getDocs } = await import("firebase/firestore");
+
           // Find user by username in Firestore
           const usersRef = collection(db, "aroma-pulse/production/users");
-          const snapshot = await import("firebase/firestore").then(m =>
-            m.getDocs(usersRef)
-          );
+          const snapshot = await getDocs(usersRef);
 
           let foundUser: {
             id: string;
@@ -58,12 +58,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             name: string;
             password: string;
             role: Role;
-          } | null = null;
+          } | undefined;
 
           snapshot.forEach((docSnap) => {
             const data = docSnap.data();
             if (data.username?.toLowerCase() === username.toLowerCase()) {
-              foundUser = { id: docSnap.id, ...data } as any;
+              foundUser = { id: docSnap.id, ...data } as typeof foundUser;
             }
           });
 

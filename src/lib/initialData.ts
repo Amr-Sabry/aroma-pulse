@@ -9,7 +9,7 @@ export const INITIAL_TEAM_DATA: TeamMember[] = [
   {
     id: "emp1",
     name: "Amr Sabry",
-    role: "Creative Director",
+    role: "admin",
     email: "amr@aromastudios.com",
     status: "online",
     skills: ["Art Direction", "Concept Development", "Leadership"],
@@ -24,7 +24,7 @@ export const INITIAL_TEAM_DATA: TeamMember[] = [
   {
     id: "emp2",
     name: "Mohamed Safwat",
-    role: "Creative Designer",
+    role: "creative",
     email: "safwat@aromastudios.com",
     status: "busy",
     skills: ["3D Modeling", "Texturing", "Lighting"],
@@ -39,7 +39,7 @@ export const INITIAL_TEAM_DATA: TeamMember[] = [
   {
     id: "emp3",
     name: "Mohamed Abbas",
-    role: "Creative Designer",
+    role: "creative",
     email: "abbas@aromastudios.com",
     status: "online",
     skills: ["Stage Design", "Visualizing", "Layout"],
@@ -54,7 +54,7 @@ export const INITIAL_TEAM_DATA: TeamMember[] = [
   {
     id: "emp4",
     name: "Rana Elsherbeny",
-    role: "Creative Designer",
+    role: "creative",
     email: "rana@aromastudios.com",
     status: "busy",
     skills: ["Graphic Design", "Branding", "Typography"],
@@ -69,7 +69,7 @@ export const INITIAL_TEAM_DATA: TeamMember[] = [
   {
     id: "emp5",
     name: "Fatma Elawady",
-    role: "Creative Designer",
+    role: "creative",
     email: "fatma@aromastudios.com",
     status: "busy",
     skills: ["UI/UX Design", "Wireframing", "Prototyping"],
@@ -84,7 +84,7 @@ export const INITIAL_TEAM_DATA: TeamMember[] = [
   {
     id: "emp6",
     name: "Ahmed Esmail",
-    role: "Creative Designer",
+    role: "creative",
     email: "ahmed@aromastudios.com",
     status: "online",
     skills: ["Motion Graphics", "VFX", "Compositing"],
@@ -119,7 +119,7 @@ export const INITIAL_PROJECTS_DATA: Project[] = [
     client: "Police Brand",
     budgetHours: 120,
     deadline: "2025-11-22",
-    status: "Critical",
+    status: "Active",
     health: "Risk",
     milestones: [{ title: "Stage Setup", date: 18, completed: true }],
   },
